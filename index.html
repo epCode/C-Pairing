@@ -825,7 +825,7 @@ function render() {
   headerRight.innerHTML = `
     <span class="save-indicator" id="save-indicator">✓ Saved</span>
     <span style="font-size:12px;color:var(--muted2);margin-right:4px">${esc(state.tourney.name)}</span>
-    <button class="btn btn-sm" onclick="exportTournament()" title="Export tournament to JSON">💾 Export</button>
+    <button class="btn btn-sm" onclick="exportTournament()" title="Export tournament to JSON">Export</button>
     <button class="btn btn-sm" onclick="confirmNewTourney()">New</button>
   `;
 
@@ -2246,10 +2246,10 @@ function renderSettings() {
       <button class="btn" onclick="openTBSettings()">Configure Tiebreaks</button>
     </div>
     <div class="card">
-      <div class="card-title">💾 Save &amp; Export</div>
+      <div class="card-title">Save &amp; Export</div>
       <div class="info-box">✓ Auto-saved to browser storage after every change. Refresh-safe on this device.</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-        <button class="btn btn-gold" onclick="exportTournament()">💾 Export Tournament (.json)</button>
+        <button class="btn btn-gold" onclick="exportTournament()">Export Tournament (.json)</button>
         <button class="btn btn-blue" onclick="importTournamentFile()">📂 Load Tournament File</button>
       </div>
       <p style="font-size:12px;color:var(--muted2);margin-top:10px">
