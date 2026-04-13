@@ -1,0 +1,13 @@
+{
+  "name": "chess-tournament-manager",
+  "version": "1.0.0",
+  "description": "Chess Tournament Manager with Lichess/Chess.com proxy",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "devDependencies": {
+    "electron": "^41.2.0",
+    "electron-builder": "^26.8.1"
+  }
+}
