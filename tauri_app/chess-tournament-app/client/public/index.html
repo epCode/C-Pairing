@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chess Tournament Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0e0d;
+  --bg2: #1a1815;
+  --bg3: #242220;
+  --bg4: #2e2b28;
+  --border: #3a3733;
+  --border2: #4a4743;
+  --gold: #c9a84c;
+  --gold2: #e8c97a;
+  --gold3: #f5e4a8;
+  --cream: #f0e8d6;
+  --muted: #8a8680;
+  --muted2: #b0aba4;
+  --text: #f0e8d6;
+  --text2: #c4bdb4;
+  --green: #4a8c5c;
+  --green2: #6ab07a;
+  --red: #9c3a3a;
+  --red2: #c85c5c;
+  --blue: #3a6a9c;
+  --blue2: #5a8ac0;
+  --draw: #7a6a4c;
+  --draw2: #a08c6a;
+  --radius: 8px;
+  --radius2: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: var(--gold2);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-icon { font-size: 22px; }
+
+.header-right { display: flex; align-items: center; gap: 8px; }
+
+nav {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 8px;
+}
+nav::-webkit-scrollbar { display: none; }
+nav button {
+  background: none;
+  border: none;
+  color: var(--muted2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+nav button:hover { color: var(--text); }
+nav button.active { color: var(--gold2); border-bottom-color: var(--gold); }
+
+.main { flex: 1; padding: 16px; max-width: 1000px; width: 100%; margin: 0 auto; }
+
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.btn {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+.btn:active { opacity: 0.8; }
+.btn-gold { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 600; }
+.btn-gold:hover { background: var(--gold2); border-color: var(--gold2); }
+
+input, select, textarea {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  width: 100%;
+  transition: border-color 0.15s;
+  outline: none;
+}
+input:focus, select:focus { border-color: var(--gold); }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.active {
+  display: flex;
+}
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius2);
+  padding: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  color: var(--gold2);
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.toast {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  z-index: 400;
+  animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+  from { transform: translateX(400px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted2);
+}
+.empty-state .big { font-size: 48px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <div class="logo">
+      <span class="logo-icon">♟</span>
+      <span>Chess Tournament Manager</span>
+    </div>
+    <div class="header-right"></div>
+  </header>
+  
+  <nav>
+    <button class="nav-btn active" data-tab="setup">Setup</button>
+    <button class="nav-btn" data-tab="players">Players</button>
+    <button class="nav-btn" data-tab="rounds">Rounds</button>
+    <button class="nav-btn" data-tab="standings">Standings</button>
+  </nav>
+
+  <div class="main">
+    <div id="main-content">
+      <div class="card">
+        <h2 style="color: var(--gold2); margin-bottom: 16px;">Welcome to Chess Tournament Manager</h2>
+        <p style="margin-bottom: 16px;">This is a standalone desktop application with no external server required.</p>
+        <p style="margin-bottom: 16px;">All Lichess and Chess.com player imports work directly from your computer.</p>
+        <button class="btn btn-gold" onclick="startNewTournament()">Start New Tournament</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-title">Modal</span>
+      <button class="btn" onclick="closeModal()" style="padding: 4px 8px;">✕</button>
+    </div>
+    <div id="modal-content"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<script>
+// Initialize Tauri API
+const { invoke } = window.__TAURI__.core;
+
+// State management
+let state = {
+  tourney: null,
+  players: [],
+  rounds: [],
+  currentRound: 0
+};
+
+// Toast notification
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// Modal management
+function showModal(title, content, footer) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-content').innerHTML = content;
+  document.getElementById('modal-footer').innerHTML = footer || '<button class="btn" onclick="closeModal()">Close</button>';
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+// Lichess search using Tauri command
+async function searchLichess(term) {
+  if (!term || term.length < 2) return [];
+  try {
+    const result = await invoke('search_lichess', { term });
+    return result.users || [];
+  } catch (e) {
+    toast('Error searching Lichess: ' + e);
+    return [];
+  }
+}
+
+// Chess.com lookup using Tauri command
+async function lookupChessCom(username) {
+  if (!username) return null;
+  try {
+    const result = await invoke('lookup_chesscom', { username });
+    return result;
+  } catch (e) {
+    toast('Error looking up Chess.com player: ' + e);
+    return null;
+  }
+}
+
+// Start new tournament
+function startNewTournament() {
+  showModal('New Tournament', `
+    <div style="margin-bottom: 12px;">
+      <label>Tournament Name</label>
+      <input type="text" id="tourney-name" placeholder="My Tournament">
+    </div>
+    <div style="margin-bottom: 12px;">
+      <label>Number of Rounds</label>
+      <input type="number" id="tourney-rounds" value="5" min="1" max="20">
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-gold" onclick="createTournament()">Create</button>
+  `);
+}
+
+function createTournament() {
+  const name = document.getElementById('tourney-name').value || 'Tournament';
+  const rounds = parseInt(document.getElementById('tourney-rounds').value) || 5;
+  
+  state.tourney = {
+    name,
+    totalRounds: rounds,
+    tiebreaks: ['Buchholz', 'Sonneborn-Berger']
+  };
+  state.players = [];
+  state.rounds = [];
+  state.currentRound = 0;
+  
+  closeModal();
+  toast('Tournament created!');
+  renderMain();
+}
+
+function renderMain() {
+  const mc = document.getElementById('main-content');
+  if (!state.tourney) {
+    mc.innerHTML = `
+      <div class="card">
+        <h2 style="color: var(--gold2); margin-bottom: 16px;">Welcome to Chess Tournament Manager</h2>
+        <p style="margin-bottom: 16px;">This is a standalone desktop application with no external server required.</p>
+        <p style="margin-bottom: 16px;">All Lichess and Chess.com player imports work directly from your computer.</p>
+        <button class="btn btn-gold" onclick="startNewTournament()">Start New Tournament</button>
+      </div>
+    `;
+  } else {
+    mc.innerHTML = `
+      <div class="card">
+        <h2 style="color: var(--gold2); margin-bottom: 8px;">${state.tourney.name}</h2>
+        <p style="color: var(--muted2); margin-bottom: 16px;">${state.players.length} players • ${state.rounds.length} rounds</p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-gold" onclick="openImportPlayer()">+ Add Player</button>
+          <button class="btn" onclick="generateRound()">Generate Round</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function openImportPlayer() {
+  showModal('Add Player', `
+    <div style="margin-bottom: 12px;">
+      <label>Search Lichess</label>
+      <input type="text" id="lichess-search" placeholder="Username or name" oninput="debounceSearch()">
+      <div id="lichess-results" style="margin-top: 8px;"></div>
+    </div>
+    <div style="margin-bottom: 12px;">
+      <label>Or lookup Chess.com</label>
+      <input type="text" id="chesscom-search" placeholder="Exact username">
+      <button class="btn" onclick="doChessComSearch()" style="margin-top: 8px;">Lookup</button>
+      <div id="chesscom-results" style="margin-top: 8px;"></div>
+    </div>
+    <div style="margin-bottom: 12px;">
+      <label>Or add manually</label>
+      <input type="text" id="manual-name" placeholder="Player name">
+      <input type="number" id="manual-rating" placeholder="Rating" style="margin-top: 8px;">
+      <button class="btn btn-gold" onclick="addManualPlayer()" style="margin-top: 8px;">Add</button>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">Done</button>`);
+}
+
+let searchTimeout;
+function debounceSearch() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(doLichessSearch, 500);
+}
+
+async function doLichessSearch() {
+  const term = document.getElementById('lichess-search')?.value || '';
+  if (!term || term.length < 2) return;
+  
+  const el = document.getElementById('lichess-results');
+  el.innerHTML = '<div style="color: var(--muted);"><span class="spinner"></span> Searching...</div>';
+  
+  const users = await searchLichess(term);
+  if (!users.length) {
+    el.innerHTML = '<div style="color: var(--muted);">No players found</div>';
+    return;
+  }
+  
+  el.innerHTML = users.map(u => `
+    <div style="background: var(--bg3); padding: 8px; border-radius: var(--radius); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <div style="font-weight: 500;">${u.username}</div>
+        <div style="font-size: 12px; color: var(--muted);">Rating: ${u.perfs?.classical?.rating || u.perfs?.rapid?.rating || '—'}</div>
+      </div>
+      <button class="btn btn-sm" onclick="addLichessPlayer('${u.username}', ${u.perfs?.classical?.rating || u.perfs?.rapid?.rating || 1600})">+ Add</button>
+    </div>
+  `).join('');
+}
+
+async function doChessComSearch() {
+  const username = document.getElementById('chesscom-search')?.value || '';
+  if (!username) return;
+  
+  const el = document.getElementById('chesscom-results');
+  el.innerHTML = '<div style="color: var(--muted);"><span class="spinner"></span> Looking up...</div>';
+  
+  const data = await lookupChessCom(username);
+  if (!data || !data.profile) {
+    el.innerHTML = '<div style="color: var(--red2);">Player not found</div>';
+    return;
+  }
+  
+  const profile = data.profile;
+  const stats = data.stats || {};
+  const rating = stats.chess_rapid?.last?.rating || stats.chess_blitz?.last?.rating || 1600;
+  
+  el.innerHTML = `
+    <div style="background: var(--bg3); padding: 12px; border-radius: var(--radius); margin-bottom: 6px;">
+      <div style="font-weight: 500; margin-bottom: 4px;">${profile.username}</div>
+      <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Rating: ${rating}</div>
+      <button class="btn btn-sm btn-gold" onclick="addChessComPlayer('${profile.username}', ${rating})">+ Add</button>
+    </div>
+  `;
+}
+
+function addLichessPlayer(username, rating) {
+  const player = {
+    id: Date.now(),
+    name: username,
+    rating: rating || 1600,
+    platform: 'lichess',
+    score: 0,
+    games: [],
+    opponents: []
+  };
+  state.players.push(player);
+  toast(`Added ${username}`);
+  closeModal();
+  renderMain();
+}
+
+function addChessComPlayer(username, rating) {
+  const player = {
+    id: Date.now(),
+    name: username,
+    rating: rating || 1600,
+    platform: 'chesscom',
+    score: 0,
+    games: [],
+    opponents: []
+  };
+  state.players.push(player);
+  toast(`Added ${username}`);
+  closeModal();
+  renderMain();
+}
+
+function addManualPlayer() {
+  const name = document.getElementById('manual-name')?.value || '';
+  const rating = parseInt(document.getElementById('manual-rating')?.value) || 1600;
+  
+  if (!name) {
+    toast('Please enter a player name');
+    return;
+  }
+  
+  const player = {
+    id: Date.now(),
+    name,
+    rating,
+    platform: 'manual',
+    score: 0,
+    games: [],
+    opponents: []
+  };
+  state.players.push(player);
+  toast(`Added ${name}`);
+  closeModal();
+  renderMain();
+}
+
+function generateRound() {
+  if (!state.players.length) {
+    toast('Add players first');
+    return;
+  }
+  
+  const round = {
+    num: state.rounds.length + 1,
+    pairings: []
+  };
+  
+  // Simple pairing: pair adjacent players
+  for (let i = 0; i < state.players.length; i += 2) {
+    round.pairings.push({
+      board: Math.floor(i / 2) + 1,
+      white: state.players[i].id,
+      black: state.players[i + 1]?.id || null,
+      result: null,
+      isBye: !state.players[i + 1]
+    });
+  }
+  
+  state.rounds.push(round);
+  state.currentRound = state.rounds.length;
+  toast(`Round ${round.num} generated`);
+  renderMain();
+}
+
+// Navigation
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+  });
+});
+
+// Initialize
+renderMain();
+</script>
+
+</body>
+</html>
