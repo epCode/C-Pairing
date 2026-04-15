@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Clears deprecation warnings
+
 jobs:
   publish:
     permissions:
@@ -14,11 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest" # For Apple Silicon and Intel Macs
+          - platform: "macos-latest"
             args: "--target universal-apple-darwin"
-          - platform: "ubuntu-22.04" # For Linux
+          - platform: "ubuntu-22.04"
             args: ""
-          - platform: "windows-latest" # For Windows
+          - platform: "windows-latest"
             args: ""
 
     runs-on: ${{ matrix.platform }}
@@ -28,13 +31,12 @@ jobs:
       - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24 # Updated to Node 24
           cache: 'npm'
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          # Those targets are only needed on macOS
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: install dependencies (ubuntu only)
@@ -50,9 +52,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # This will be replaced by the version in package.json
+          tagName: v__VERSION__
           releaseName: "Chess Tournament Manager v__VERSION__"
-          releaseBody: "Automated build of Chess Tournament Manager."
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
