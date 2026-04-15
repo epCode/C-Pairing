@@ -43,7 +43,8 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+          # Added xvfb to this list
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev xvfb
 
       - name: install frontend dependencies
         run: npm install
@@ -56,4 +57,5 @@ jobs:
           releaseName: "Chess Tournament Manager v__VERSION__"
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}
+          # We wrap the Linux build command in xvfb-run
+          args: ${{ matrix.platform == 'ubuntu-22.04' && 'xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" -- npm run tauri build' || matrix.args }}
