@@ -6,9 +6,6 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Clears deprecation warnings
-
 jobs:
   publish:
     permissions:
@@ -17,11 +14,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest"
+          - platform: "macos-latest" # For Apple Silicon and Intel Macs
             args: "--target universal-apple-darwin"
-          - platform: "ubuntu-22.04"
+          - platform: "ubuntu-22.04" # For Linux
             args: ""
-          - platform: "windows-latest"
+          - platform: "windows-latest" # For Windows
             args: ""
 
     runs-on: ${{ matrix.platform }}
@@ -31,20 +28,20 @@ jobs:
       - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 24 # Updated to Node 24
+          node-version: 20
           cache: 'npm'
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
+          # Those targets are only needed on macOS
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          # Added xvfb to this list
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev xvfb
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
       - name: install frontend dependencies
         run: npm install
@@ -53,9 +50,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__
+          tagName: app-v__VERSION__ # This will be replaced by the version in package.json
           releaseName: "Chess Tournament Manager v__VERSION__"
+          releaseBody: "Automated build of Chess Tournament Manager."
           releaseDraft: true
           prerelease: false
-          # We wrap the Linux build command in xvfb-run
-          args: ${{ matrix.platform == 'ubuntu-22.04' && 'xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" -- npm run tauri build' || matrix.args }}
+          args: ${{ matrix.args }}
