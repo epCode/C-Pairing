@@ -61,9 +61,26 @@ jobs:
       - name: setup virtual display (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
-          sudo apt-get install -y xvfb
+          # Start Xvfb with a log file to debug issues
+          sudo Xvfb :99 -screen 0 1024x768x24 -ac -nolisten tcp > /tmp/xvfb.log 2>&1 &
+          XVFB_PID=$!
+          
+          # Give Xvfb time to start
+          sleep 2
+          
+          # Verify Xvfb is running
+          if ! kill -0 $XVFB_PID 2>/dev/null; then
+            echo "Xvfb failed to start"
+            cat /tmp/xvfb.log
+            exit 1
+          fi
+          
+          # Set environment variables
           echo "DISPLAY=:99" >> $GITHUB_ENV
-          sudo Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          echo "XAUTHORITY=/tmp/.Xauthority" >> $GITHUB_ENV
+          
+          # Verify display is accessible
+          DISPLAY=:99 xset q || true
 
       - uses: tauri-apps/tauri-action@v0
         if: matrix.platform != 'ubuntu-22.04'
@@ -82,6 +99,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DISPLAY: :99
+          XAUTHORITY: /tmp/.Xauthority
+          GDK_BACKEND: x11
+          LIBGL_ALWAYS_INDIRECT: 1
         with:
           tagName: app-v__VERSION__ # This will be replaced by the version in package.json
           releaseName: "Chess Tournament Manager v__VERSION__"
