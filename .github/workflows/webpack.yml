@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Clears deprecation warnings
+
 jobs:
   publish:
     permissions:
@@ -22,19 +25,13 @@ jobs:
             args: ""
 
     runs-on: ${{ matrix.platform }}
-    env:
-      # These two lines fix the "Could not create surfaceless EGL display" error 
-      # by disabling hardware acceleration during the build process.
-      WEBKIT_DISABLE_COMPOSITING_MODE: 1
-      WEBKIT_FORCE_SANDBOX: 0
-
     steps:
       - uses: actions/checkout@v4
 
       - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24 # Updated to Node 24
           cache: 'npm'
 
       - name: install Rust stable
@@ -46,10 +43,8 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
+          # Added xvfb to this list
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev xvfb
-          
-          # Start the virtual display in the background
-          Xvfb :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
 
       - name: install frontend dependencies
         run: npm install
@@ -57,13 +52,10 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Tell Tauri to use the virtual display we just started
-          DISPLAY: :99 
-          # Prevent WebKit from looking for a hardware GPU
-          WEBKIT_DISABLE_COMPOSITING_MODE: 1 
         with:
           tagName: v__VERSION__
           releaseName: "Chess Tournament Manager v__VERSION__"
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}
+          # We wrap the Linux build command in xvfb-run
+          args: ${{ matrix.platform == 'ubuntu-22.04' && 'xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" -- npm run tauri build' || matrix.args }}
