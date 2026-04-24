@@ -1,0 +1,21 @@
+{
+  "name": "Chess Tournament Manager",
+  "short_name": "ChessMgr",
+  "description": "Manage chess tournaments, pairings, and standings locally.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0e0d",
+  "theme_color": "#c9a84c",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

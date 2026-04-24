@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chess Tournament Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#c9a84c">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registered!', reg))
+        .catch(err => console.error('Service Worker registration failed: ', err));
+    });
+  }
+</script>
 <style>
 :root {
   --bg: #0f0e0d;
@@ -1223,15 +1236,11 @@ async function doLichessSearch() {
   el.innerHTML = `<div style="padding:8px;color:var(--muted);font-size:13px"><span class="spinner"></span> Searching Lichess…</div>`;
   
   try {
-    const { invoke } = window.__TAURI__.core;
     let usernames = [];
 
     // 1. Autocomplete
     try {
-      const acData = JSON.parse(await invoke('proxy_request', {
-        url: `https://lichess.org/api/player/autocomplete?term=${encodeURIComponent(term)}&object=1`,
-        method: 'GET', body: ''
-      }));
+      const acData = await fetch(`/api/lichess/search?term=${encodeURIComponent(term)}`).then(res => res.json());
       usernames = (acData.result || []).slice(0, 8).map(u => u.name || u.id).filter(Boolean);
     } catch(e) {}
 
@@ -1239,10 +1248,7 @@ async function doLichessSearch() {
     if (!usernames.length) {
       // 2. Fall back to direct user lookup
       try {
-        const user = JSON.parse(await invoke('proxy_request', {
-          url: `https://lichess.org/api/user/${encodeURIComponent(term.toLowerCase())}`,
-          method: 'GET', body: ''
-        }));
+        const user = await fetch(`/api/lichess/user/${encodeURIComponent(term.toLowerCase())}`).then(res => res.json());
         users = [user];
       } catch(e) {}
     } else {
@@ -1303,21 +1309,13 @@ async function doChessComSearch() {
   el.innerHTML = `<div style="padding:8px;color:var(--muted);font-size:13px"><span class="spinner"></span> Looking up @${esc(username)}…</div>`;
   
   try {
-    const { invoke } = window.__TAURI__.core;
     const slug = encodeURIComponent(username.toLowerCase());
 
-    const profile = JSON.parse(await invoke('proxy_request', {
-      url: `https://api.chess.com/pub/player/${slug}`,
-      method: 'GET', body: ''
-    }));
+    const profileData = await fetch(`/api/chesscom/player/${slug}`).then(res => res.json());
 
-    let stats = {};
-    try {
-      stats = JSON.parse(await invoke('proxy_request', {
-        url: `https://api.chess.com/pub/player/${slug}/stats`,
-        method: 'GET', body: ''
-      }));
-    } catch(e) {}
+    const profile = profileData.profile;
+
+    const stats = profileData.stats;
 
     const rapid = stats.chess_rapid?.last?.rating;
     const blitz = stats.chess_blitz?.last?.rating;

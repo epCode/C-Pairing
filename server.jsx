@@ -188,13 +188,23 @@ const server = http.createServer((req, res) => {
   }
 
   // Serve static files
-  if (pathname === '/' || pathname === '/index.html') {
-    return serveFile(res, path.join(__dirname, 'index.html'), 'text/html');
-  }
+    if (pathname === '/' || pathname === '/index.html') {
+      return serveFile(res, path.join(__dirname, 'index.html'), 'text/html');
+    }
+    if (pathname === '/manifest.json') {
+      return serveFile(res, path.join(__dirname, 'manifest.json'), 'application/json');
+    }
+    if (pathname === '/sw.js') {
+      return serveFile(res, path.join(__dirname, 'sw.js'), 'application/javascript');
+    }
+    if (pathname.startsWith('/icons/')) {
+      // Ensure you have an 'icons' folder with the images
+      return serveFile(res, path.join(__dirname, pathname), 'image/png');
+    }
 
-  res.writeHead(404);
-  res.end('Not found');
-});
+    res.writeHead(404);
+    res.end('Not found');
+  });
 
 server.listen(PORT, () => {
   console.log(`\n♟  Chess Tournament Manager`);
